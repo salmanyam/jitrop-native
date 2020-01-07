@@ -260,7 +260,8 @@ vector<string> recursive_codepage_harvest(
 		chrono::milliseconds cur_time = chrono::duration_cast< chrono::milliseconds >(
                     chrono::system_clock::now().time_since_epoch()
     	);
-		cout << cur_time.count()-start_time << " " << sum_tc(tc_set) << endl;
+		cout.precision(2);
+		cout << (cur_time.count()-start_time)/1000.0 << " " << sum_tc(tc_set) << endl;
 	}
 	
 	count = cs_disasm(handle, data, nread, pageno, 0, &insn);
