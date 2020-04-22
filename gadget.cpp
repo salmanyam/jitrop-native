@@ -215,7 +215,7 @@ vector<string> gather_gadget_by_ending(char *code, size_t size,  unsigned long s
 			//disas_raw_code2((unsigned char*)&code[index], 3, start_addr);
 			//printf("%d\n", cindex);
 			for (x = 0; x <= cindex; x += align) {
-				new_gadget = create_gadget(code, index-x, index+ending.blen, start_addr+index-x, ending);
+				new_gadget = create_gadget(code, index-x, index+ending.blen, /*start_addr+index-x*/offset_tmp-x, ending);
                 
 				if(!new_gadget.is_empty()) {
 					if (new_gadget.length() > inst_count)
@@ -330,13 +330,14 @@ vector<string> create_gadgets(
 		result = gather_gadget_by_ending((char *)dest_buffer, size, target_address, pq.top(), inst_count);
 		//total += result.size();
 		copy(result.begin(), result.end(), back_inserter(to_return));
+
+		
 		result.clear();
      	pq.pop();
 
-		//for(int i=0; i<result.size(); i++)
-		//	cout << "PFV: " <<  result[i] << endl;
-
   	}
+	//for(int i=0; i<to_return.size(); i++)
+	//	cout << "PFV: " <<  to_return[i] << endl;
 
 	return to_return;
 

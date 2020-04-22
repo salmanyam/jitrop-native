@@ -1,5 +1,6 @@
 #include <iostream>
 #include <set>
+#include <string>
 #include <vector>
 #include <chrono>
 
@@ -111,6 +112,7 @@ int disas_raw_code(unsigned char *custom_code, size_t code_size, unsigned long s
 }
 */
 
+
 unsigned long page_no(unsigned long addr){
 	return addr & 0xFFFFFFFFFFFFF000;
 }
@@ -122,7 +124,7 @@ unsigned long get_got_slot(unsigned long code_ptr, int pid) {
 
 	if ((data = (unsigned char *)malloc(read_size * sizeof(char))) == NULL) {
 		if (IS_LOG) printf("sorry, there was a memory allocation error for plt data.\n");
-		return -1;
+		return 0;
 	}
 	
 	size_t nread = readmemory(pid, data, (const char *) code_ptr, read_size);
@@ -184,36 +186,332 @@ unsigned long get_got_slot(unsigned long code_ptr, int pid) {
 	return library_ptr;
 }
 
-bool is_complete(int *tc_set) {
-	for (int i=0; i<11; i++)
+bool branch_inst(cs_insn insn){
+	if (strcmp(insn.mnemonic, "call") == 0 ||
+				strcmp(insn.mnemonic, "jmp") == 0 ||
+				strcmp(insn.mnemonic, "je") == 0 ||
+				strcmp(insn.mnemonic, "jl") == 0 ||
+				strcmp(insn.mnemonic, "jle") == 0 ||
+				strcmp(insn.mnemonic, "jb") == 0 ||
+				strcmp(insn.mnemonic, "jbe") == 0 ||
+				strcmp(insn.mnemonic, "jg") == 0 ||
+				strcmp(insn.mnemonic, "jge") == 0 ||
+				strcmp(insn.mnemonic, "ja") == 0 ||
+				strcmp(insn.mnemonic, "jae") == 0 ||
+				strcmp(insn.mnemonic, "js") == 0 ||
+				strcmp(insn.mnemonic, "jo") == 0 ||
+				strcmp(insn.mnemonic, "jnp") == 0 ||
+				strcmp(insn.mnemonic, "jns") == 0 )
+
+		return true;
+	return false;
+}
+
+bool is_complete(int *tc_set, int tc_priority_mv) {
+	int gsize = get_gadget_size(tc_priority_mv); // defined in lookup.cpp
+	
+	for (int i = 0; i < gsize; i++)
 		if(!tc_set[i])
 			return false;
 
 	return true;
 }
 
-int sum_tc(int *tc_set) {
+int sum_tc(int *tc_set, int tc_priority_mv) {
+	int gsize = get_gadget_size(tc_priority_mv); // defined in lookup.cpp
+
 	int total = 0;
-	for (int i=0; i<11; i++)
-		total += tc_set[i];
+	for (int i = 0; i < gsize; i++){
+		//cout << "TCSET: " << i << " " << tc_set[i] << endl;
+		total += tc_set[i]? 1: 0;
+	}
 	return total;
 }
 
-vector<string> recursive_codepage_harvest(
+
+
+void rerand_recursive_codepage_harvest(
 				int pid, 
 				unsigned long codeptr, 
 				set<unsigned long> *visited, 
-				bool is_rerand, 
 				int *tc_set,
+				set<string> *gadget_set,
+				set<string> *regset,
+				int which,
 				double start_time,
-				bool executable_only) 
+				bool exec_only) 
+{	
+	bool complete = is_complete(tc_set, which);
+
+	jitrop_timing category = (jitrop_timing) which;
+
+	if (category == JITROP_TIME_MOVTC || category == JITROP_TIME_MOVTC_COUNT) {
+		if (complete && regset->size() >= 4) return;
+	} else {
+		if (complete) return;
+	}
+
+	unsigned long pageno = page_no(codeptr);
+
+	set<unsigned long>::iterator it = visited->find(pageno);
+
+	if (*it == pageno) return;
+
+	visited->insert(pageno);
+
+	unsigned char *data = NULL;
+	size_t read_size = 4096;
+
+	if ((data = (unsigned char *) malloc(read_size * sizeof(char))) == NULL) {
+		if (IS_LOG) printf("sorry, there was a memory allocation error.\n");
+		return;
+	}
+
+	size_t nread = readmemory(pid, data, (const char *) pageno, read_size);
+	
+	//printf("Code pointer = %lx %ld\n", pageno, nread);
+
+	if (nread <= 0) {
+		if (IS_LOG) printf("Memory read error, no data to disassemble.\n");
+		return;
+	}
+
+	csh handle;
+	cs_insn *insn;
+	size_t count;
+
+	if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle) != CS_ERR_OK) {
+		if (IS_LOG) printf("Capstone cs_open() error!\n");
+		return;
+	}
+	
+	printf("%lx ", pageno);
+	
+	chrono::milliseconds gstart_time = chrono::duration_cast< chrono::milliseconds >(
+					chrono::system_clock::now().time_since_epoch());
+
+	vector<string> result = create_gadgets(data, nread, pageno, 5, 3);
+
+	chrono::milliseconds gend_time = chrono::duration_cast< chrono::milliseconds >(
+					chrono::system_clock::now().time_since_epoch());
+
+	//cout << (gend_time.count() - gstart_time.count()) << " " << endl;
+	
+	switch(category) {
+		case JITROP_TIME_TC: get_min_tc_set(result, tc_set); break;
+		case JITROP_TIME_PRIORITY: get_priority_set(result, tc_set); break;
+		case JITROP_TIME_MOVTC: get_mov_tc_set(result, tc_set, regset); break;
+		case JITROP_TIME_MOVTC_COUNT: get_mov_tc_count(result, tc_set, gadget_set, regset); break;
+		case JITROP_TIME_PAYLOAD1: get_payload_set_one(result, tc_set); break;
+		default: get_min_tc_set(result, tc_set); break;
+	}
+
+	chrono::milliseconds cur_time = chrono::duration_cast< chrono::milliseconds >(
+                    chrono::system_clock::now().time_since_epoch());
+
+	cout << (gend_time.count() - gstart_time.count()) << " " 
+				<< (cur_time.count() - gend_time.count()) << " "
+				<< (cur_time.count()- start_time) << " "
+				<< sum_tc(tc_set, which) << endl;
+	
+	result.clear();
+
+	count = cs_disasm(handle, data, nread, pageno, 0, &insn);
+
+	if (count > 0) {
+		size_t j;
+		for (j = 0; j < count; j++) {
+			//printf("0x%" PRIx64 ":\t%s\t\t%s\n", insn[j].address, insn[j].mnemonic, insn[j].op_str);
+			if (branch_inst(insn[j])) {
+				if (insn[j].op_str[0] == '0' && insn[j].op_str[1] == 'x'){
+					//printf("0x%"PRIx64":\t%s\t\t%s\n", insn[j].address, insn[j].mnemonic, insn[j].op_str);
+					
+  					unsigned long old_codeptr = strtoul(insn[j].op_str, NULL, 16);
+
+  					if (!exec_only) {
+						if (strcmp(insn[j].mnemonic, "call") == 0) {
+							unsigned long new_codeptr = get_got_slot(old_codeptr, pid);
+							//printf("%lx\n", new_codeptr);
+							if (new_codeptr > 0) {
+								rerand_recursive_codepage_harvest(
+												pid, 
+												new_codeptr, 
+												visited, 
+												tc_set,
+												gadget_set,
+												regset,
+												which, 
+												start_time, 
+												exec_only );
+							}
+						}
+					}
+					
+					rerand_recursive_codepage_harvest(
+									pid, 
+									old_codeptr, 
+									visited, 
+									tc_set,
+									gadget_set,
+									regset,
+									which,
+									start_time, 
+									exec_only );
+				}
+			}
+		}
+
+		cs_free(insn, count);
+	}
+
+	cs_close(&handle);
+	free(data);
+}
+
+
+
+void run_rerand_timing(int pid, unsigned long addr, int which) {
+	set<unsigned long> visited;
+	int gsize = get_gadget_size(which);
+
+	int tc_set[gsize] = {0, };
+
+	set<string> regset;
+	set<string> gadget_set;
+
+	chrono::milliseconds start_time = chrono::duration_cast< chrono::milliseconds >(
+                    chrono::system_clock::now().time_since_epoch());
+
+	rerand_recursive_codepage_harvest(
+					pid, 
+					addr, 
+					&visited, 
+					tc_set, 
+					&gadget_set,
+					&regset,
+					which,
+					start_time.count(), 
+					false );	
+
+	chrono::milliseconds cur_time = chrono::duration_cast< chrono::milliseconds >(
+                    chrono::system_clock::now().time_since_epoch());
+
+	//cout.precision(3);
+	cout << (cur_time.count() - start_time.count()) << " " 
+				<< sum_tc(tc_set, which) << endl;
+
+	jitrop_timing category = (jitrop_timing) which;
+	if (category == JITROP_TIME_MOVTC_COUNT) {
+		for (int i = 0; i < gsize; i++) {
+			cout << tc_set[i] << " ";
+		}
+		cout << endl;
+	}
+}
+
+
+int scan_codepages (
+				int pid, 
+				unsigned long codeptr, 
+				set<unsigned long> *visited, 
+				bool exec_only,
+				int which,
+				int *limit,
+				int total_cp) 
+{	
+	if (codeptr == 0x0) return 0;
+
+	if (total_cp > 0 && *limit > total_cp) return 0;
+
+	unsigned long pageno = page_no(codeptr);
+
+	set<unsigned long>::iterator it = visited->find(pageno);
+
+	if (*it == pageno)
+			return 0;
+
+	visited->insert(pageno);
+
+	printf("0x%lx\n", pageno);
+	run_rerand_timing(pid, pageno, which);
+	*limit += 1;
+
+	unsigned char *data = NULL;
+	size_t read_size = 4096;
+
+	if ((data = (unsigned char *)malloc(read_size * sizeof(char))) == NULL) {
+		if (IS_LOG) printf("sorry, there was a memory allocation error.\n");
+		return -1;
+	}
+
+	size_t nread = readmemory(pid, data, (const char *) pageno, read_size);
+	
+	if (nread <= 0) {
+		if (IS_LOG) printf("Memory read error, no data to disassemble.\n");
+		return -1;
+	}
+
+	csh handle;
+	cs_insn *insn;
+	size_t count;
+
+	//printf("%ld\n", sizeof(custom_code));
+
+	if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle) != CS_ERR_OK) {
+		if (IS_LOG) printf("Capstone cs_open() error!\n");
+		return -1;
+	}
+	
+	count = cs_disasm(handle, data, nread, pageno, 0, &insn);
+	
+	if (count > 0) {
+		size_t j;
+		for (j = 0; j < count; j++) {
+			if (branch_inst(insn[j])) {
+				if (insn[j].op_str[0] == '0' && insn[j].op_str[1] == 'x') {
+					//printf("0x%"PRIx64":\t%s\t\t%s\n", insn[j].address, insn[j].mnemonic,
+					//		insn[j].op_str);
+					
+  					unsigned long new_codeptr = strtoul(insn[j].op_str, NULL, 16);
+					//printf("%ld %lx\n", new_codeptr, new_codeptr);
+					
+					scan_codepages(pid, new_codeptr, visited, exec_only, which, limit, total_cp);
+				}
+			}
+		}
+		cs_free(insn, count);
+	} //else {
+		//printf("ERROR: Failed to disassemble given code!\n");
+	//}
+
+	cs_close(&handle);
+
+	free(data);
+
+	return 0;
+}
+
+void init_rerand_timing(int pid, unsigned long addr, int which, int cpages) {
+	set<unsigned long> visited_for_scan;
+	int limit = 0;
+	scan_codepages(pid, addr, &visited_for_scan, true, which, &limit, cpages);	
+	//printf("%s\n", "Here");
+	//run_rerand_timing(pid, addr, which);
+}
+
+
+
+
+
+
+
+vector<string> tc_recursive_codepage_harvest(
+				int pid, 
+				unsigned long codeptr, 
+				set<unsigned long> *visited, 
+				bool exec_only) 
 {	
 	vector<string> to_return, new_result;
-
-	if (is_rerand) {
-		if(is_complete(tc_set))
-			return to_return;
-	}
 
 	unsigned long pageno = page_no(codeptr);
 
@@ -224,14 +522,11 @@ vector<string> recursive_codepage_harvest(
 
 	visited->insert(pageno);
 
-	//printf("%lx\n", pageno);
-
 	unsigned char *data = NULL;
 	size_t read_size = 4096;
 
 	if ((data = (unsigned char *)malloc(read_size * sizeof(char))) == NULL) {
 		if (IS_LOG) printf("sorry, there was a memory allocation error.\n");
-		//return -1;
 		return to_return; // to_return is empty at this point
 	}
 
@@ -250,54 +545,49 @@ vector<string> recursive_codepage_harvest(
 
 	if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle) != CS_ERR_OK) {
 		if (IS_LOG) printf("Capstone cs_open() error!\n");
-		//return -1;
 		return to_return; // to_return is empty at this point
 	}
 
+	printf("0x%lx\n", pageno);
+
 	vector<string> result = create_gadgets(data, nread, pageno, 5, 3);
-	if(is_rerand) {
-		get_min_tc_set(result, tc_set);
-		chrono::milliseconds cur_time = chrono::duration_cast< chrono::milliseconds >(
-                    chrono::system_clock::now().time_since_epoch()
-    	);
-		cout.precision(2);
-		cout << (cur_time.count()-start_time)/1000.0 << " " << sum_tc(tc_set) << endl;
-	}
 	
 	count = cs_disasm(handle, data, nread, pageno, 0, &insn);
-	
+
 	if (count > 0) {
 		size_t j;
 		for (j = 0; j < count; j++) {
-			if (strcmp(insn[j].mnemonic, "call") == 0 ||
-				strcmp(insn[j].mnemonic, "jmp") == 0 ||
-				strcmp(insn[j].mnemonic, "je") == 0 ||
-				strcmp(insn[j].mnemonic, "jl") == 0 ||
-				strcmp(insn[j].mnemonic, "jle") == 0 ||
-				strcmp(insn[j].mnemonic, "jb") == 0 ||
-				strcmp(insn[j].mnemonic, "jbe") == 0 ||
-				strcmp(insn[j].mnemonic, "jg") == 0 ||
-				strcmp(insn[j].mnemonic, "jge") == 0 ||
-				strcmp(insn[j].mnemonic, "ja") == 0 ||
-				strcmp(insn[j].mnemonic, "jae") == 0 ||
-				strcmp(insn[j].mnemonic, "js") == 0 ||
-				strcmp(insn[j].mnemonic, "jo") == 0 ||
-				strcmp(insn[j].mnemonic, "jnp") == 0 ||
-				strcmp(insn[j].mnemonic, "jns") == 0 )
+			//printf("0x%" PRIx64 ":\t%s\t\t%s\n", insn[j].address, insn[j].mnemonic,
+				//	insn[j].op_str);
+			if (branch_inst(insn[j]))
 			{
 				if (insn[j].op_str[0] == '0' && insn[j].op_str[1] == 'x'){
-					//printf("0x%"PRIx64":\t%s\t\t%s\n", insn[j].address, insn[j].mnemonic,
-					//		insn[j].op_str);
+					//printf("0x%"PRIx64":\t%s\t\t%s\n", insn[j].address, insn[j].mnemonic, insn[j].op_str);
 					
-  					unsigned long new_codeptr = strtoul(insn[j].op_str, NULL, 16);
-					//printf("%ld %lx\n", new_codeptr, new_codeptr);
-					
-					if (strcmp(insn[j].mnemonic, "call") == 0) {
-						if (!executable_only)
-							new_codeptr = get_got_slot(new_codeptr, pid);
-					}
+  					unsigned long old_codeptr = strtoul(insn[j].op_str, NULL, 16);
 
-					new_result = recursive_codepage_harvest(pid, new_codeptr, visited, is_rerand, tc_set, start_time, executable_only);
+					if (!exec_only) {
+						if (strcmp(insn[j].mnemonic, "call") == 0) {
+							unsigned long new_codeptr = get_got_slot(old_codeptr, pid);
+							//printf("%lx\n", new_codeptr);
+							if (new_codeptr > 0) {
+								new_result = tc_recursive_codepage_harvest(
+										pid, 
+										new_codeptr, 
+										visited, 
+										exec_only );
+								copy(new_result.begin(), new_result.end(), back_inserter(to_return));
+								copy(result.begin(), result.end(), back_inserter(to_return));
+								new_result.clear();
+								result.clear();
+							}
+						}
+					}
+					new_result = tc_recursive_codepage_harvest(
+									pid, 
+									old_codeptr, 
+									visited, 
+									exec_only );
 					copy(new_result.begin(), new_result.end(), back_inserter(to_return));
 					copy(result.begin(), result.end(), back_inserter(to_return));
 					new_result.clear();
@@ -319,11 +609,11 @@ vector<string> recursive_codepage_harvest(
 	return to_return;
 }
 
-void init_rerand_timing(int pid, unsigned long addr) {
+
+void find_tc_gadgets(int pid, unsigned long addr, bool exec_only) {
 	set<unsigned long> visited;
-	int tc_set[11] = {0, };
-	chrono::milliseconds start_time = chrono::duration_cast< chrono::milliseconds >(
-                    chrono::system_clock::now().time_since_epoch()
-    );
-	vector<string> result = recursive_codepage_harvest(pid, addr, &visited, true, tc_set, start_time.count(), false);	
+	int tc_set[TC_GADGETS] = {0, };
+
+	vector<string> result = tc_recursive_codepage_harvest(pid, addr, &visited, exec_only);
+	lookup_gadgets(result);
 }
