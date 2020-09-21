@@ -1,0 +1,10 @@
+#https://github.com/rapid7/metasploit-framework/blob/master//modules/exploits/windows/browser/mozilla_mchannel.rb
+#https://www.corelan.be/index.php/2011/07/03/universal-depaslr-bypass-with-msvcr71-dll-and-mona-py/
+
+pop reg; add reg, constant; ret
+pop reg; ret
+mov [reg], reg; mov [reg + offset], reg; mov reg, constant; ret
+pop reg; ret
+pop reg; add reg, constant; ret
+add reg, [reg]; adc reg, constant; ret
+push reg; add reg, constant; ret

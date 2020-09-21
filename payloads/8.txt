@@ -1,0 +1,17 @@
+#https://www.rapid7.com/db/modules/exploit/windows/misc/fb_cnct_group
+
+mov reg, reg; ret
+pop reg; ret
+add reg, reg; mov reg, constant; ret
+mov reg, reg; pop reg; ret
+pop reg; ret
+mov reg, sreg:[reg]; ret
+xchg reg, reg; ret
+pop reg; ret
+push reg; ret
+pop reg; ret
+pop reg; ret
+pop reg; ret
+pop reg; ret
+pop reg; ret 
+pushad; ret

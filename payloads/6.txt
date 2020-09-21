@@ -1,0 +1,12 @@
+#https://www.rapid7.com/db/modules/exploit/linux/misc/hp_nnmi_pmd_bof
+
+pop reg; pop reg; pop reg; ret
+lea reg, [reg + offset]; ret
+push reg; ret
+add reg, constant; add reg, reg; ret
+xchg reg, reg; ret
+pop reg; pop reg; pop reg; ret
+add reg, offset; add reg, reg; ret
+xchg reg, reg; and reg, constant; and reg, reg; ret
+xchg reg, reg; ret;
+jmp reg

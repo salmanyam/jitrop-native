@@ -1,0 +1,13 @@
+#https://www.rapid7.com/db/modules/exploit/windows/browser/tom_sawyer_tsgetx71ex552
+
+pop reg; pop reg; pop reg; pop reg; pop reg; ret
+jmp [reg]
+neg reg; ret
+inc reg; fpatan; ret
+add reg, reg; xor reg, reg; inc reg; ret
+pop reg; ret
+neg reg; ret
+pop reg; ret
+pop reg; ret
+pushad; add reg, constant; ret
+push reg; ret

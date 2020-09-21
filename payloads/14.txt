@@ -1,0 +1,29 @@
+#https://www.rapid7.com/db/modules/exploit/windows/scada/igss9_igssdataserver_rename
+
+push reg; pop reg; ret
+add reg, constant; ret
+add reg, constant; ret
+xor reg, constant; ret
+mov reg, sreg:[reg]; ret
+mov sreg:[reg], reg; ret
+add reg, constant; ret
+push reg; pop reg; ret
+add reg, constant; ret
+add reg, constant; ret
+add reg, constant; ret
+add reg, constant; ret
+mov reg, reg; pop reg; ret
+mov sreg:[reg], reg; ret
+add reg, constant; ret
+mov sreg:[reg], reg; ret
+add reg, constant; ret
+xor reg, constant; ret
+mov sreg:[reg], reg; ret
+add reg, constant; ret
+xor reg, constant; ret
+mov sreg:[reg], reg; ret
+add reg, constant; ret
+pop reg; ret
+mov sreg:[reg], reg; ret
+add reg, constant; ret
+xchg reg, reg; ret

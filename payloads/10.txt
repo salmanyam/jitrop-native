@@ -1,0 +1,26 @@
+#https://www.rapid7.com/db/modules/exploit/windows/fileformat/ms12_027_mscomctl_bof
+
+pop reg; ret
+mov reg, sreg:[reg]; ret
+call reg; ret
+pop reg; ret
+add reg, reg; pop reg; ret
+pop reg; ret
+mov sreg:[reg], reg; ret
+pop reg; add sreg:[reg], reg; ret
+pop reg; ret
+mov reg, sreg:[reg]; ret
+pop reg; ret
+add reg, reg; add reg, reg; pop reg; ret
+mov reg, reg; ret
+mov sreg:[reg], reg; xor reg, reg; pop reg; ret
+mov reg, reg; ret
+pop reg; ret
+mov reg, sreg:[reg]; ret
+xchg reg, reg; ret 
+pop reg; ret
+mov reg, sreg:[reg]; ret
+add reg, constant; ret
+pop reg; ret
+rep movs sreg:[reg], sreg:[reg]; pop reg; pop reg; ret
+call reg; ret

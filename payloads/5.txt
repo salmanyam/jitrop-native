@@ -1,0 +1,38 @@
+#https://www.rapid7.com/db/modules/exploit/windows/backupexec/ssl_uaf
+
+push reg; pop reg; ret
+pop reg; ret
+add reg, reg; ret
+pop reg; ret
+pop reg; ret
+mov reg, reg; call reg
+jmp [address]
+pop reg; pop reg; pop reg; pop reg; ret
+push reg; pop reg; ret
+mov reg, reg; call reg
+pop reg; ret
+add reg, reg; ret
+push reg; pop reg; ret
+pop reg; pop reg; ret
+pop reg; ret
+mov reg, reg; mov reg, constant; call reg
+pop reg; ret
+pop reg; ret
+mov reg, reg; call reg
+ret
+jmp [address]
+pop reg; pop reg; pop reg; pop reg; ret
+push reg; pop reg; ret
+pop reg; ret
+pop reg; ret
+mov reg, reg; call reg
+pop reg; ret
+mov reg, reg; call reg
+mov reg, reg; test reg, reg; jns address; xor reg, reg; ret
+pop reg; ret
+mov reg, reg; call reg
+pop reg; ret
+ret
+jmp reg
+pop reg; pop reg; pop reg; pop reg; ret
+push reg; ret

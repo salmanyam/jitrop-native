@@ -1,0 +1,13 @@
+#https://www.rapid7.com/db/modules/exploit/windows/misc/allmediaserver_bof
+
+pop reg; ret 
+mov reg, sreg:[reg]; ret
+push reg; pop reg; pop reg; ret
+pop reg; ret
+call reg
+pop reg; ret
+pop reg; ret
+pop reg; ret
+pop reg; ret
+pop reg; ret
+pushad; ret

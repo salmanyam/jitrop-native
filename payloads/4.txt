@@ -1,0 +1,14 @@
+https://www.exploit-db.com/exploits/22683
+
+pop reg; ret;
+mov reg, reg; pop reg; pop reg; pop reg; ret;
+mov [reg], reg; add reg, constant; ret;
+call [reg];
+pop reg; ret;
+mov reg, reg; pop reg; pop reg; pop reg; ret;
+add reg, constant; ret;
+mov [reg], reg; add reg, constant; ret; 
+pop reg; ret;
+add reg, reg; pop reg; pop reg; pop reg; ret;
+sub reg, constant; ret;
+call [reg];

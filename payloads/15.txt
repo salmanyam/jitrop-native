@@ -1,0 +1,18 @@
+#https://www.rapid7.com/db/modules/exploit/linux/misc/netsupport_manager_agent
+
+add [reg + offset], reg; pop reg; pop reg; ret;
+add reg, constant; pop reg; pop reg; pop reg; ret
+pop reg; pop reg; pop reg; ret
+mov [reg + reg * constant], reg; ret
+mov [reg], reg; pop reg; ret
+push reg; adc reg, constant; ret
+lea reg, [reg - offset]; ret
+lea reg, [reg + offset]; ret
+pop reg; ret
+rep movsd; ret
+pop reg; pop reg; ret
+mov [reg + offset], reg; pop reg; pop reg; ret
+pop reg; pop reg; ret
+pop reg; pop reg; ret
+pop reg; pop reg; ret
+pop reg; pop reg; ret

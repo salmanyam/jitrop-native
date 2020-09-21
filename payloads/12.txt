@@ -1,0 +1,16 @@
+#https://www.rapid7.com/db/modules/exploit/windows/browser/ms12_004_midi
+
+push reg; pop reg; pop reg; pop reg; pop reg; ret
+pop reg; ret
+mov reg, sreg:[reg]; ret
+pop reg; ret
+inc reg; ret
+adc reg, reg; dec reg; ret
+pop reg; ret
+jmp reg
+pop reg; ret
+pop reg; ret
+pop reg; ret
+pop reg; ret
+pop reg; ret
+pushad; ret

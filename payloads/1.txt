@@ -1,0 +1,23 @@
+#https://www.rapid7.com/db/modules/exploit/linux/ftp/proftp_telnet_iac
+
+pop reg; ret
+mov reg, [reg]; ret
+jmp reg
+add reg, constant; pop reg; pop reg; ret
+pop reg; mov reg, constant; inc [reg + offset]; ret
+mov [reg + reg * constant], reg; ret
+mov [reg], reg; add reg, constant; pop reg; pop reg; pop reg; ret
+lea reg, [reg - offset]
+lea reg, [reg + offset]
+pop reg
+rep movsd
+pop reg; pop reg; ret
+jmp reg
+pop reg; pop reg; ret
+jmp reg
+pop reg; pop reg; ret
+jmp reg
+pop reg; pop reg; ret
+jmp reg
+pop reg; pop reg; ret
+jmp reg

@@ -1,0 +1,14 @@
+#https://www.rapid7.com/db/modules/exploit/windows/browser/intrust_annotatex_add
+
+pop reg; ret
+mov reg, [reg + constant]; ret
+push reg; dec reg; pop reg; pop reg; ret
+pop reg; ret
+push reg; ret
+pop reg; ret
+pop reg; ret
+pop reg; ret
+pop reg; ret
+pop reg; ret
+pop reg; pop reg; pop reg; ret
+pushad; push reg; push reg; push reg; call [reg + offset]

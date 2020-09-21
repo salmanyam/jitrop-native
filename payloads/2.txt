@@ -1,0 +1,24 @@
+#https://www.rapid7.com/db/modules/exploit/windows/browser/mozilla_mchannel
+
+mov reg, sreg:[reg]; junk; junk; junk; push reg; call [reg + offset]
+push reg; push reg; push reg; call [reg + offset]
+push reg; mov reg, reg; mov reg, [reg + offset]; push constant; push constant; push [reg + offset]; call [reg + offset]
+call [reg + offset]; pop reg; pop reg; ret
+add reg, constant; test [reg], reg; xchg reg, reg; mov reg, [reg]; push reg; ret
+pop reg; ret
+push reg; junk; pop reg; pop reg; ret
+pop reg; ret
+mov reg, [reg]; ret
+mov [reg + offset], reg; pop reg; pop reg; pop reg; ret
+pop reg; ret
+pop reg; ret
+neg reg; ret
+pop reg; ret
+inc reg; fpatan; ret
+add reg, reg; xor reg, reg; inc reg; ret
+pop reg; ret
+pop reg; ret
+pop reg; ret
+neg reg; ret
+pop reg; ret
+pushad; add reg, constant; ret

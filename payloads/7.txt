@@ -1,0 +1,19 @@
+#https://www.rapid7.com/db/modules/exploit/windows/fileformat/mediacoder_m3u
+
+pop reg; pop reg; ret
+neg reg; ret
+xchg reg, reg; add reg, constant; pop reg; pop reg; pop reg; pop reg; ret
+pop reg; ret
+mov reg, sreg:[reg]; ret
+xchg reg, reg; ret
+pop reg; pop reg; ret
+neg reg; ret
+pop reg; ret
+inc reg; sub reg, constant; ret
+xchg reg, reg; ret
+add reg, reg; or reg, constant; ret
+pop reg; ret
+pop reg; ret
+pop reg; pop reg; ret
+push reg; ret
+pushad; ret
