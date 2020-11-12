@@ -617,3 +617,22 @@ void find_tc_gadgets(int pid, unsigned long addr, bool exec_only) {
 	vector<string> result = tc_recursive_codepage_harvest(pid, addr, &visited, exec_only);
 	lookup_gadgets(result);
 }
+
+void find_priority_gadgets(int pid, unsigned long addr, bool exec_only) {
+	set<unsigned long> visited;
+	int tc_set[TC_GADGETS] = {0, };
+
+	vector<string> result = tc_recursive_codepage_harvest(pid, addr, &visited, exec_only);
+	lookup_priority_gadgets(result);
+}
+
+void find_movtc_gadgets(int pid, unsigned long addr, bool exec_only) {
+	set<unsigned long> visited;
+	int tc_set[TC_GADGETS] = {0, };
+
+	set<string> regset;
+	set<string> gadget_set;
+
+	vector<string> result = tc_recursive_codepage_harvest(pid, addr, &visited, exec_only);
+	lookup_movtc_gadgets(result, &gadget_set, &regset);
+}

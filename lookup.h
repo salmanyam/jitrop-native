@@ -7,7 +7,7 @@
 
 #define TC_GADGETS 11
 #define MOVTC_GADGETS 8
-#define PRIORITY_GADGETS 14
+#define PRIORITY_GADGETS 13
 #define PAYLOAD_ONE_GADGETS 11-1
 
 #define ALL_GADGETS 29
@@ -30,5 +30,7 @@ void get_mov_tc_count(std::vector<std::string> gadgets, int *tc_set, std::set<st
 void get_payload_set_one(std::vector<std::string> gadgets, int *tc_set);
 
 void lookup_gadgets(std::vector<std::string> gadgets);
+void lookup_priority_gadgets(std::vector<std::string> gadgets);
+void lookup_movtc_gadgets(std::vector<std::string> gadgets, std::set<std::string> *gadget_set, std::set<std::string> *regset);
 
 #endif //JITROP_LOOKUP_H

@@ -337,6 +337,36 @@ void lookup_gadgets(vector<string> gadgets) {
 	result.clear();	
 }
 
+
+void lookup_priority_gadgets(vector<string> gadgets) {
+	
+	vector<string> result_unfmt = format_gadgets(gadgets);
+	vector<string> result = delete_duplicate_gadgets(result_unfmt);
+
+	for (int i = 0; i < PRIORITY_GADGETS; i++) {
+		cout << PRIORITY_GADGET_SET[i].first << " " << find_gadgets(result, PRIORITY_GADGET_SET[i].second) << endl;
+	}
+
+	result_unfmt.clear();	
+	result.clear();	
+}
+
+void lookup_movtc_gadgets(vector<string> gadgets, set<string> *gadget_set, set<string> *regset) {
+	
+	vector<string> result_unfmt = format_gadgets(gadgets);
+	vector<string> result = delete_duplicate_gadgets(result_unfmt);
+
+	for (int i = 0; i < MOVTC_GADGETS; i++) {
+		cout << MOVTC_GADGET_SET[i].first << " " 
+			<< find_gadgets_MOVTC_count(result, MOVTC_GADGET_SET[i].second, gadget_set, regset) << endl;
+	}
+
+	result_unfmt.clear();	
+	result.clear();	
+}
+
+
+
 void get_mov_tc_count(vector<string> gadgets, int *tc_set, set<string> *gadget_set, set<string> *regset) {
 
 	vector<string> result_unfmt = format_gadgets(gadgets);

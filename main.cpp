@@ -106,7 +106,10 @@ int main (int argc, char **argv)
     		}
 
     		if (operation <= 0) find_tc_gadgets(pid, addr, exec_only);
-    		else init_rerand_timing(pid, addr, operation, codepages);
+    		else if (operation > 0 && operation <= 5) init_rerand_timing(pid, addr, operation, codepages);
+    		else if (operation == 6) find_priority_gadgets(pid, addr, exec_only);
+    		else if (operation == 7) find_movtc_gadgets(pid, addr, exec_only);
+    		else find_tc_gadgets(pid, addr, exec_only);
 
 		if (ptrace(PTRACE_DETACH, pid, NULL, 0) == -1L) {
         		fprintf(stderr, "error: failed to detach to %d, %s\n", pid,
