@@ -95,7 +95,7 @@ SYS_footprint 1
 
 ```
 
-### Operations
+## Operations
 We can get several types of output from the ```jitrop``` program as follows:
 ```-o 1```: Operation 1 outputs the time to collect all the gadgets from the Turing-complete gadget set.  
 ```-o 2```: Operation 2 outputs the time to collect all the gadgets from the priority gadget set.  
