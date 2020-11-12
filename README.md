@@ -213,3 +213,5 @@ PRIORITY_gadgets_15 7
 PRIORITY_gadgets_16 39
 PRIORITY_gadgets_17 1
 ```
+
+Please contact the author if you have any questions.
