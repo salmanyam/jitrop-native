@@ -20,7 +20,10 @@ series = {CCS '20}
 }
 ```
 
+## [There is another repository (https://github.com/salmanyam/tutorial-secdev-2021) regarding jitrop that was recently tested. If you have any issues in this repository, please refer to that repo]
+
 We discuss how to use the native version of JIT-ROP as follows.
+
 
 
 ## Dependencies
